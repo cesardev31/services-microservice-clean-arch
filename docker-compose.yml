@@ -1,0 +1,92 @@
+version: "3.8"
+
+services:
+  # Base de Datos para Usuarios (Users DB)
+  users_mongodb:
+    image: mongo:7.0
+    container_name: users_mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=Your_password123
+      - MONGO_INITDB_DATABASE=UsersDb
+    volumes:
+      - users-mongodb-data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Base de Datos para Pedidos (Orders DB)
+  orders_mongodb:
+    image: mongo:7.0
+    container_name: orders_mongodb
+    ports:
+      - "27018:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=Your_password123
+      - MONGO_INITDB_DATABASE=OrdersDb
+    volumes:
+      - orders-mongodb-data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Base de Datos para Pagos (Payments DB)
+  payments_mongodb:
+    image: mongo:7.0
+    container_name: payments_mongodb
+    ports:
+      - "27019:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=Your_password123
+      - MONGO_INITDB_DATABASE=PaymentsDb
+    volumes:
+      - payments-mongodb-data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ Compartido (Shared Message Broker)
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: shared_rabbitmq
+    ports:
+      - "5672:5672" # PUERTO ESTÁNDAR PARA TODOS LOS SERVICIOS
+      - "15672:15672" # Panel de control
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=Your_password123
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  users-mongodb-data:
+    driver: local
+  orders-mongodb-data:
+    driver: local
+  payments-mongodb-data:
+    driver: local
+  rabbitmq-data:
+    driver: local
+
+networks:
+  default:
+    name: microservices_net
